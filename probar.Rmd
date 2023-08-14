@@ -1,0 +1,52 @@
+---
+title: "Presentation Ninja"
+subtitle: "⚔<br/>with xaringan"
+author: "Yihui Xie"
+institute: "RStudio, PBC"
+date: "2016/12/12 (updated: `r Sys.Date()`)"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r}
+library(tidyverse)
+titanic <- read_csv("data/titanic.csv")
+
+```
+
+---
+
+```{r}
+library(fastDummies)
+titanic2 <- dummy_cols(titanic, select_columns = c("Pclass", "Sex")) %>% 
+  select(-c("Sex", "Name", "Pclass"))
+
+```
+
+---
+
+```{r, fig.width=5,fig.height=3}
+titanic2 %>% 
+  count(Survived) %>%
+  mutate(Survived = as.factor(Survived)) %>% 
+  ggplot(aes(x = Survived, y = n, fill = Survived )) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  theme(legend.position = "none")
+
+```
+
+---
+
+class: center, middle
+
+# Thanks!
+
+Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
+
+The chakra comes from [remark.js](https://remarkjs.com), [**knitr**](https://yihui.org/knitr/), and [R Markdown](https://rmarkdown.rstudio.com).

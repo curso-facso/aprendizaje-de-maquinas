@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Métodos Computacionales para las Ciencias Sociales</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Klaus Lehmann" />
+    <script src="aprendizaje-supervisado_files/header-attrs/header-attrs.js"></script>
+    <script src="aprendizaje-supervisado_files/clipboard/clipboard.min.js"></script>
+    <link href="aprendizaje-supervisado_files/xaringanExtra-clipboard/xaringanExtra-clipboard.css" rel="stylesheet" />
+    <script src="aprendizaje-supervisado_files/xaringanExtra-clipboard/xaringanExtra-clipboard.js"></script>
+    <script>window.xaringanExtraClipboard(null, {"button":"Copy Code","success":"Copied!","error":"Press Ctrl+C to Copy"})</script>
+    <link href="aprendizaje-supervisado_files/panelset/panelset.css" rel="stylesheet" />
+    <script src="aprendizaje-supervisado_files/panelset/panelset.js"></script>
+    <script src="aprendizaje-supervisado_files/kePrint/kePrint.js"></script>
+    <link href="aprendizaje-supervisado_files/lightable/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer2.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Métodos Computacionales para las Ciencias Sociales
+]
+.subtitle[
+## Aprendizaje de máquinas
+]
+.author[
+### Klaus Lehmann
+]
+
+---
+
+
+
+
+
+
+
+# Contenidos
+
+Introducción
+Flujo de un proyecto de *machine learning*
+
+
+
+Objetivo de la clase: 
+
+Revisar un flujo estándar de *machine learning*
+
+
+
+---
+
+# Motivación
+
+
+.center[
+&lt;img src="imagenes/directora.jpeg" width="500" /&gt;
+]
+
+### La directora está preocupada por la deserción de estudiantes en su colegio
+
+--
+
+### Necesita anticipar cuáles son los estudiantes que podrían desertar 
+
+
+
+---
+
+# Los datos
+
+La directora cuenta con **datos históricos** de deserción de su colegio
+
+--
+
+Para cada estudiante contamos con: 
+
+- Información sociodemográfica
+- Información socioeconómica de su hogar
+- Rendimiento escolar histórico
+- Situación de deserción
+
+
+---
+
+
+.center[
+&lt;img src="imagenes/reproducibility.jpg" width="900" /&gt;
+]
+
+
+---
+
+## Resultado
+
+.panelset[
+.panel[.panel-name[resultado]
+
+### Creamos un modelo de *machine learning* para predecir la probabilidad de deserción
+
+.center[
+&lt;img src="imagenes/analistas.png" width="350" /&gt;
+]
+]
+
+.panel[.panel-name[predicción 1]
+
+Caso 1: 
+
+- **sexo**: mujer
+- **edad**: 15
+- **hijos**: sí
+- **rendimiento**: bajo
+- **índice socioeconómico**: bajo
+- **otras variables** 
+
+**Probabilidad deserción**: 60%  
+
+]
+
+.panel[.panel-name[predicción 2]
+
+Caso 2: 
+
+- **sexo**: hombre
+- **edad**: 15
+- **hijos**: no
+- **rendimiento**: bajo
+- **índice socioeconómico**: bajo
+- **otras variables** 
+
+**Probabilidad deserción**: 30%  
+
+]
+
+.panel[.panel-name[programa]
+
+La directora está muy feliz con los resultados y comenzará un programa focalizado 
+
+La directora intervendrá en los estudiantes que tienen una mayor probabilidad de deserción  
+
+
+### ¿Cómo saber que el modelo funcionará bien con los datos nuevos?
+
+]
+
+
+
+
+
+]
+
+
+
+---
+class: inverse center middle
+
+# Vamos desde el principio
+
+---
+
+## Algunas ideas
+
+- Programa que aprenda patrones sin que las reglas sean declaradas explícitamente 
+
+--
+
+- *Aprendizaje* a partir de una muestra, para luego predecir sobre datos nuevos
+
+--
+
+
+.center[
+&lt;img src="imagenes/machine_learning.jpg" width="450" /&gt;
+]
+
+### La gran incógnita: ¿cómo saber si nuestro modelo funcionará bien con datos nuevos?  
+
+---
+
+## Flujo estándar
+
+Exploración de los datos
+
+--
+
+Separar el set de datos en al menos 2 partes (deberían ser 3)
+
+- set de entrenamiento (*training set*)
+- set de testeo (*test set*)
+
+--
+
+Entrenar el algoritmo en el set de entrenamiento 
+- *Cross validation*
+- Ajuste de hiperparámetros
+
+--
+
+Probar el resultado en el set de validación
+
+- *Accuracy*
+- *Precision*
+- *Recall*
+- *F1-score*
+
+---
+
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+
+.center[
+# Revisaremos este flujo con el dataset Titanic
+]
+
+ 
+ 
+
+
+---
+
+## Los datos
+
+
+
+
+```
+## [1] "Survived"                "Pclass"                 
+## [3] "Name"                    "Sex"                    
+## [5] "Age"                     "Siblings/Spouses Aboard"
+## [7] "Parents/Children Aboard" "Fare"
+```
+
+&lt;img src="aprendizaje-supervisado_files/figure-html/unnamed-chunk-3-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+## Exploración
+
+.panelset[
+.panel[.panel-name[sexo]
+
+&lt;img src="aprendizaje-supervisado_files/figure-html/unnamed-chunk-4-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+
+]
+
+.panel[.panel-name[clase]
+
+&lt;img src="aprendizaje-supervisado_files/figure-html/unnamed-chunk-5-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+]
+
+.panel[.panel-name[edad-precio]
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Survived &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; media_edad &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; media_precio &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30.13853 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22.20858 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28.40839 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 48.39541 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+&lt;img src="aprendizaje-supervisado_files/figure-html/unnamed-chunk-7-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+
+
+]
+
+.panel[.panel-name[hijos-padres]
+
+Número de padres-hijos a bordo
+
+&lt;img src="aprendizaje-supervisado_files/figure-html/unnamed-chunk-8-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+
+
+]
+
+.panel[.panel-name[hermanos-pareja]
+
+Número de hermanos-pareja a bordo
+
+&lt;img src="aprendizaje-supervisado_files/figure-html/unnamed-chunk-9-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+]
+]
+
+---
+
+## Extracción de características 
+
+Crear variables *dummy* y eliminar columnas 
+
+
+```r
+library(fastDummies)
+library(janitor)
+titanic2 &lt;- dummy_cols(titanic, select_columns = c("Pclass", "Sex")) %&gt;% 
+  select(-c("Sex", "Name", "Pclass")) %&gt;% 
+  clean_names()
+
+titanic2 &lt;- titanic2 %&gt;% 
+  mutate_at(vars("age", "fare", "siblings_spouses_aboard", "parents_children_aboard"), 
+            .funs = list(~(. - mean(.) ) / sd(.) )) %&gt;% 
+  select(-c("pclass_1", "sex_female"))
+```
+
+
+
+
+
+---
+
+## Separar en dos partes
+
+
+```r
+library(caret)
+set.seed(123)
+train_indices &lt;- createDataPartition( titanic2$survived, times = 1, p = 0.8, list = FALSE)
+train_set &lt;-  titanic2[train_indices, ]
+test_set &lt;-  titanic2[-train_indices, ]
+```
+
+
+
+--
+
+.pull-left[
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+&lt;caption&gt;Train&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; survived &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; n &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; porcentaje &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 440 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6197183 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 270 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.3802817 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;br&gt;
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+&lt;caption&gt;Test&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; survived &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; n &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; porcentaje &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 105 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.5932203 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.4067797 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+]
+
+--
+
+.pull-right[
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+&lt;caption&gt;Total&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; survived &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; n &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; porcentaje &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 545 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.6144307 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 342 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.3855693 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+### ¿Cuál es la importancia de esta partición?
+
+]
+
+
+
+
+
+---
+
+## Proceso de entrenamiento
+
+
+```r
+model &lt;- glm(formula = survived ~ sex_male + pclass_2 + pclass_3 + age + fare +
+             siblings_spouses_aboard + parents_children_aboard,
+             family = "binomial",
+    data = train_set)
+
+predict_reg1 &lt;- predict(model, train_set, type = "response")
+
+predict_reg2 &lt;- predict(model, test_set, type = "response")
+
+
+predictions_train &lt;- if_else(predict_reg1 &gt; 0.5, 1, 0)
+predictions_test &lt;- if_else(predict_reg2 &gt; 0.5, 1, 0)
+
+acc_train &lt;- mean(train_set$survived == predictions_train)
+acc_test &lt;- mean(test_set$survived == predictions_test)
+
+print(paste("acc train: ", acc_train) )
+```
+
+```
+## [1] "acc train:  0.805633802816901"
+```
+
+```r
+print(paste("acc test: ", acc_test) )
+```
+
+```
+## [1] "acc test:  0.807909604519774"
+```
+
+
+---
+
+&lt;br&gt;
+## ¿Qué hubiera ocurrido con otra partición?
+
+--
+
+## ¿El resultado hubiese sido el mismo?
+
+
+--
+
+## Repitamos el proceso con otra muestra
+
+
+```r
+library(caret)
+set.seed(123456)
+train_indices &lt;- createDataPartition( titanic2$survived, times = 1, p = 0.8, list = FALSE)
+train_set &lt;-  titanic2[train_indices, ]
+test_set &lt;-  titanic2[-train_indices, ]
+```
+
+
+
+```
+## [1] "acc train:  0.807042253521127"
+```
+
+```
+## [1] "acc test:  0.807909604519774"
+```
+
+## Nuestra predicción tiene varianza
+
+
+---
+
+## Cross validation
+
+
+```r
+library(caret)
+set.seed(12345)
+train_control &lt;- trainControl(method = "cv", number = 10, savePredictions = TRUE)
+
+crossval &lt;- train(as.factor(survived) ~ sex_male + pclass_2 + pclass_3 + age + fare +
+             siblings_spouses_aboard + parents_children_aboard ,
+             data = train_set ,
+             method = "glm",
+             family=binomial(),
+             trControl = train_control)
+```
+  
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Accuracy &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Resample &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.8055556 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fold01 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.7887324 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fold02 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.8309859 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fold03 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.8450704 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fold04 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.6666667 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fold05 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.7746479 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fold06 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.8000000 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fold07 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.7887324 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fold08 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.8309859 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fold09 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.8000000 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Fold10 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+```
+## [1] "mean acc: 0.7931"
+```
+ 
+---
+
+## ¿Qué tan bueno es nuestro clasificador?
+
+--
+
+### ¿~80% de acierto es suficiente?
+
+--
+
+### ¿80% comparado con qué?
+
+.center[
+&lt;img src="imagenes/moneda.png" width="400" /&gt;
+]
+
+
+---
+
+## Modelo base
+
+&lt;img src="aprendizaje-supervisado_files/figure-html/unnamed-chunk-20-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+--
+
+### Sin saber *machine learning*, podemos obtener un acierto de más de 61%
+
+---
+
+## Modelo base
+
+### ¿Qué pasaría si la relación de las clases fuera 99% y 1%?
+
+--
+
+### ¿Es suficiente la medida de *accuracy*?
+
+--
+
+### En clasificaciones desbalanceadas se requieren más métricas
+
+
+
+
+
+---
+
+## Matriz de confusión
+
+
+```r
+confusion &lt;- data.frame(real = test_set$survived, pred = predictions_test)
+table(confusion$real, confusion$pred)
+```
+
+```
+##    
+##      0  1
+##   0 87 15
+##   1 19 56
+```
+### En el mundo ideal solo tendríamos valores en la diagonal
+
+Matriz de confusión
+
+- verdadero negativo (superior izquierdo)
+- verdadero positivo (inferior derecho)
+- falso positivo (superior derecho)
+- falso negativo (inferior izquierdo)
+
+
+
+
+---
+
+## Precision y recall
+
+.panelset[
+.panel[.panel-name[precision]
+
+`\(precision = \frac{VP}{VP + FP}\)` 
+
+`\(precision = \frac{56}{56 + 15}\)`
+
+Cuando el modelo predice sobrevivencia, acierta en el ~79% de los casos
+
+.center[
+&lt;img src="imagenes/precision.png" width="400" /&gt;
+]
+
+
+
+
+]
+
+.panel[.panel-name[recall]
+
+
+`\(recall = \frac{VP}{VP + FN}\)`
+
+`\(recall = \frac{56}{56 + 19}\)`
+
+El modelo identifica correctamente el 75% de los sobrevivientes. Identifica 3 de cada 4 sobrevivientes
+
+.center[
+&lt;img src="imagenes/recall.png" width="400" /&gt;
+]
+
+
+]
+
+.panel[.panel-name[síntesis]
+
+### ¿Qué es más valioso? ¿identificar los positivos (sobreviviente) o los negativos (fallecido)?
+
+### Dependerá del problema
+- Predicción de *spam*
+- Fraude bancario
+- Otorgamiento de crédito
+
+]
+
+
+
+]
+
+
+
+---
+
+## Experimento
+
+### Cambiemos el umbral de 0.5 y veamos qué pasa
+
+
+
+```r
+predictions_test &lt;- if_else(predict_reg2 &gt; 0.8, 1, 0)
+```
+
+
+
+```
+##    
+##      0  1
+##   0 87 15
+##   1 19 56
+```
+
+```
+##    
+##       0   1
+##   0 102   0
+##   1  48  27
+```
+
+### Bajaron los falsos positivos y aumentaron los falsos negativos
+
+--
+
+### ¿Estoy mejor o peor que antes?
+
+
+
+---
+
+## Experimento
+
+
+```r
+acc_08 &lt;- as.character(round(mean(confusion_2$real == confusion_2$pred), 2))
+acc_05 &lt;-  as.character(round(mean(confusion$real == confusion$pred), 2))
+```
+El *accuracy* para el umbral de 0.5 es 0.81
+
+El *accuracy* para el umbral de 0.8 es 0.73
+
+
+--
+
+
+
+&lt;img src="aprendizaje-supervisado_files/figure-html/calcular valores acc-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+---
+
+## ¿Cómo se ve nuestra matriz de confusión?
+
+
+```
+##    
+##       0   1
+##   0 102   0
+##   1  48  27
+```
+
+
+Estamos prediciendo valor 1 solo cuando estamos muy seguros
+
+### ¿Es suficiente el *accuracy*?
+
+**A considerar:**
+
+- Tenemos muy pocos falsos positivos (buen *precision*)
+- Aumentamos los falsos negativos (mal *recall*)
+
+Ambas medidas están en tensión: al subir una, generalmente baja la otra
+
+
+---
+
+## Curva ROC
+
+
+`\(True \; positive \; rate \; (TPR) = \frac{True \; positives\; (TP)}{True\;positives\;(TP)\;+\; False\;negatives (FN)}\)`
+
+`\(False \; positive\;rate\;(FPR) = \frac{False\;positives\;(FP)}{False\;positives\;(FP)\;+\;True\; negatives\;(TN)}\)`
+
+--
+
+Podemos calcular TPR y FPR para muchos umbrales de predicción
+
+
+
+
+
+
+
+
+```r
+set.seed(1234)
+umbrales &lt;- runif(n = 200) # números random
+
+# Calculamos 200 matrices de confusión
+confusion_list &lt;-  map(umbrales, ~get_confusion_matrix(.x, predict_reg2, test_set$survived))    
+
+# Calculamos tpr y fpr para cada una de las matrices
+tpr_list &lt;- map_dbl(confusion_list, get_tpr)
+fpr_list &lt;- map_dbl(confusion_list, get_fpr)
+
+# Graficamos los resultados
+roc_df &lt;- data.frame(tpr = tpr_list, fpr = fpr_list, threshold = umbrales) %&gt;% 
+  mutate(threshold2 = 1 - threshold) %&gt;% 
+  arrange(fpr, threshold2) 
+roc_df %&gt;% 
+  ggplot(aes(x =  fpr , tpr  , group = 1 )) +
+  geom_line() +
+  geom_abline() +
+  theme_bw()
+```
+
+&lt;img src="aprendizaje-supervisado_files/figure-html/unnamed-chunk-28-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+
+
+
+
+
+---
+
+## F1-score
+
+**Podemos evaluar conjuntamente precision y recall**
+
+**Precision y recall pesan los mismo**
+
+`\(F_1 = 2 \frac{precision \cdot recall}{precision + recall}\)`
+
+--
+
+**recall es considerado** `\(\beta\)` **veces más importante que precision**
+
+`\(F_{\beta} =  \frac{precision \cdot recall}{(\beta^2 \cdot precision) + recall}\)`
+
+--
+
+**En general, consideramos que pesan lo mismo**
+
+--
+
+F1 está definido entre 0 y 1
+
+
+---
+&lt;br&gt;
+&lt;br&gt;
+
+## Demos unos pasos atrás
+
+--
+
+## Queremos que nuestro algoritmo aprenda y sea capaz de generalizar
+
+--
+
+### Dos problemas
+- *overfitting* (sobre ajuste)
+- underfitting (bajo ajuste)
+
+---
+
+## Overfitting
+
+
+
+.panelset[
+.panel[.panel-name[xgboost]
+Usaremos un algoritmo llamado *extreme gradient boosting* (xgb) 
+
+[Aquí](https://xgboost.readthedocs.io/en/stable/jvm/index.html) pueden encontrar documentación sobre implementaciones en varios lenguajes
+
+- python
+- R
+- C++
+- Julia
+- Ruby
+
+]
+.panel[.panel-name[entrenamiento]
+
+Entrenamos con árboles de mucha profundidad y usamos muchas rondas
+
+
+```r
+library(xgboost)
+# Variables que participan en el modelo 
+covariables &lt;- c("sex_male", "pclass_2", "pclass_3", "age", "fare", "siblings_spouses_aboard", "parents_children_aboard")
+
+# Formato eficiente
+dtrain &lt;- xgb.DMatrix(data = train_set %&gt;% select(all_of(covariables)) %&gt;% as.matrix(),
+                      label = train_set$survived)
+
+# Entrenamiento
+model_xgb &lt;- xgboost(
+  data = dtrain,
+  nrounds = 60, 
+  max.depth = 18, 
+  objective = "binary:logistic", 
+  verbose = F)
+```
+
+
+]
+
+.panel[.panel-name[acc-train]
+
+
+```r
+predict_xgb_train &lt;- predict(model_xgb, dtrain)
+predictions_train &lt;- if_else(predict_xgb_train &gt; 0.5, 1, 0)
+acc_train &lt;- mean(train_set$survived == predictions_train)
+print(sprintf("acc en test set: %s", round(acc_train, 3)) )
+```
+
+```
+## [1] "acc en test set: 0.982"
+```
+
+]
+
+.panel[.panel-name[acc-test]
+
+
+```r
+predict_xgb_test &lt;- predict(model_xgb, test_set %&gt;% select(all_of(covariables)) %&gt;% as.matrix())
+predictions_test &lt;- if_else(predict_xgb_test &gt; 0.5, 1, 0)
+acc_test &lt;- mean(test_set$survived == predictions_test)
+print(sprintf("acc en test set: %s", round(acc_test, 3)) )
+```
+
+```
+## [1] "acc en test set: 0.785"
+```
+
+]
+
+.panel[.panel-name[aprendizaje]
+
+Memorizar != aprender
+
+Nuestro algoritmo se sobreajustó a un set de datos
+
+No es capaz de generalizar adecuadamente
+
+Se pueden ajustar los *hiperparámetros*  
+
+]
+
+]
+
+
+---
+class: inverse center middle
+
+# Pongamos las cosas en práctica
+
+---
+
+## Ejercicio
+
+Usaremos datos de la VIII Encuesta de Presupuestos Familiares. Entrenaremos un modelo para que aprenda la probabilidad de que un hogar tenga gasto en bencina.  
+
+Realizaremos todo el flujo de un proyecto de *machine learning*
+
+- Exploración (relación entre la variable objetivo y las covariables)
+- Separación train/test
+- Entrenamiento (incluir *cross validation*)
+- Evaluación en el set de testeo
+
+---
+
+## Reseña EPF
+
+&lt;img src="aprendizaje-supervisado_files/figure-html/unnamed-chunk-33-1.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+class: center, middle
+
+## Métodos Computacionales para las Ciencias Sociales
+
+### Hasta la próxima clase
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"slideNumberFormat": "%current%",
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,1156 @@
+---
+title: "NLP"
+subtitle: "calidad"
+author: 
+date: '`r Sys.Date()`'
+output:
+  xaringan::moon_reader:
+    seal: false
+    #lib_dir: libs
+    css: xaringan-themer.css
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: False
+      ratio: '13:9'
+---
+
+class: center, middle
+
+.linea-superior[]
+.linea-inferior[]
+
+<img src="imagenes/logo_portada2.png" width="200" />
+
+## INE Educa: Clases abiertas de R
+
+## Proyecto Ciencia de Datos
+
+### Septiembre 2023
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = TRUE)
+knitr::opts_chunk$set(message = FALSE, warning = F, eval = T) 
+options(scipen = "999")
+```
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+xaringanExtra::use_panelset()
+xaringanExtra::use_clipboard()
+source("code/helpers.R")
+```
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Bienvenidos y bienvenidas
+
+
+.center[
+<img src="imagenes/bienvenida.png" width="600" />
+]
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Contenidos
+
+- Introducción
+- Expresiones regulares
+- Tokenización 
+- TF-IDF
+- Modelos de lenguaje
+
+--
+
+**Objetivo de la clase**
+
+Mostrar diferentes herramientas para trabajar con datos de texto
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Antes de seguir
+
+
+```{r, eval=FALSE}
+install.packages("quanteda")
+install.packages("tidyverse")
+install.packages("quanteda.textstats")
+install.packages("word2vec")
+install.packages("reticulate")
+```
+
+```{r cargar paquetes, echo=FALSE}
+library(quanteda)
+library(tidyverse)
+library(quanteda.textstats)
+library(kableExtra)
+library(word2vec)
+library(reticulate)
+```
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Aplicaciones
+
+.center[
+<img src="imagenes/ejemplos_nlp.png" width="800" />
+]
+
+
+---
+
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Algunos conceptos
+
+## Text mining - minería de texto
+
+## Procesamiento de Lenguage Natural (NLP)
+
+## Analítica textual
+
+--
+
+.center[
+<img src="https://media.giphy.com/media/UP9ItQNj52DsM3e29m/giphy.gif" width="200" />
+]
+
+--
+
+
+.center[
+
+## Herramientas para trabajar con texto
+
+]
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Desafíos al trabajar con texto
+
+- Es ambiguo
+- Requiere un contexto
+- Es flexible
+
+--
+
+```{r ejemplo perro, eval=TRUE}
+animal <- "perro"
+if (animal == "perro") {
+  print("guau")
+}
+
+```
+
+--
+
+.center[
+### Si el animal es un perro, imprime un ladrido
+]
+
+--
+
+### Afortunadamente, contamos con herramientas para trabajar con texto
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Los datos
+
+Conjunto de noticias obtenidas de los diarios La Razón y Público de España
+
+Pueden descargarlo desde [acá](https://www.kaggle.com/datasets/josemamuiz/noticias-laraznpblico/download?datasetVersionNumber=1)
+
+--
+
+Dos columnas relevantes:
+
+1. cuerpo
+2. titular
+
+```{r}
+data <- read_csv("data/data_larazon_publico_v2.csv")
+```
+
+
+.center[
+<img src="imagenes/ejemplo_dataset.png" width="700" />
+]
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# La herramienta
+
+En `R` existen varios paquetes para trabajar con datos de texto
+
+- tm
+- tidytext
+- stringr
+- spacyr (wrapper)
+- text2vec
+
+--
+
+.center[
+<img src="imagenes/logo_quanteda.png" width="400" />
+]
+
+
+En este [sitio](https://tutorials.quanteda.io/) hay una documentación muy completa
+
+
+
+---
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Creando una matriz de frecuecia (DFM)
+
+### Es útil contar con una representación numérica de los textos
+
+--
+
+Nos permite realizar operaciones algebraicas
+
+--
+
+**Dos estrategias muy utilizadas**:
+
+- Bolsa de palabras (frecuencias brutas, TF-IDF, etc.)
+- *Word embeddings* (*deep learning*)
+
+--
+
+### Revisaremos ambas durante esta sesión 
+
+
+
+---
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# ¿Qué es una DFM?
+
+
+.panelset[
+
+.panel[.panel-name[dfm]
+
+Cada texto es descompuesto a partir de las palabras que contiene
+
+```{r}
+ejemplo <- data.frame(text = c("Mi gato es un tirano en casa. Él es amo y señor.",
+                               "Soy esclavo de mi gato."
+                               )) 
+
+dfm_ejemplo <- ejemplo %>% 
+  corpus() %>% 
+  dfm()  
+
+dfm_ejemplo 
+```
+]
+
+.panel[.panel-name[pasos]
+Pasos:
+
+1. Definimos cuál será nuestra unidad básica (*token*)
+2. Encontramos todos los *tokens* únicos
+3. Contamos cuántas veces aparece cada *token* en un texto
+
+
+### Para nosotros, un *token* será una palabra
+]
+
+.panel[.panel-name[importante]
+
+Cada texto es descrito por un vector que tiene tantas dimensiones como *tokens* tenga nuestro vocabulario
+
+**Atención**: Si nuestro vocabulario es muy grande, el manejo de los vectores puede volverse complejo
+
+El resultado es una matriz con una gran cantidad de ceros (*sparse matrix*)
+
+  ]
+]
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Creando una matriz de frecuencia (DFM)
+
+
+```{r corpus}
+set.seed(123)
+corpus <- data %>% 
+  select(text = cuerpo) %>% 
+  sample_frac(0.2) %>% 
+  corpus()
+
+dfm <- corpus %>% 
+  dfm()  
+```
+
+**Importante**
+
+- *dfm*: Document frequency matrix
+- Es obligación que la columna con el texto se llame text
+
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Volvamos a nuestra matriz original
+
+```{r, echo=FALSE}
+columnas <-  ncol(dfm)
+```
+
+```{r}
+dim(dfm)
+```
+
+Tenemos `r columnas` *tokens* distintos
+
+--
+
+Reduzcamos un poco el número de *tokens* para facilitar el procesamiento
+
+- signos de puntuación
+- símbolos extraños
+- palabras poco significativas (*stopwords*)
+- palabras con menos de 3 caracteres
+- palabras que aparecen menos de 10 veces
+
+```{r tokenizar}
+set.seed(123)
+tokens_data <- data %>% 
+  select(text = cuerpo) %>% 
+  sample_frac(0.2) %>% 
+  corpus() %>% 
+  tokens( remove_punct = TRUE, remove_symbols = TRUE) %>% #<<
+  tokens_select( pattern = stopwords("es"), selection = "remove", min_nchar=3L)  #<<
+
+dfm2 <- tokens_data %>% 
+  dfm() %>% 
+  dfm_trim(min_termfreq = 10) #<<
+
+
+  
+```
+
+
+
+```{r}
+dim(dfm2)
+```
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Exploremos el dataset
+
+.pull-left[
+```{r plot_largo, fig.height=5}
+largo_textos <-  map_int(tokens_data, length)
+df_largo <- data.frame(largo = largo_textos)
+df_largo %>% 
+  ggplot(aes(x = largo)) +
+  geom_histogram(binwidth = 15) +
+  theme_bw()
+```
+
+]
+
+
+.pull-right[
+```{r}
+summary(df_largo$largo)
+```
+
+
+]
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Exploremos el dataset
+
+Exploremos las palabras más y menos comunes
+
+```{r}
+dfm2 %>% 
+  quanteda::topfeatures(n = 10)
+```
+
+
+--
+
+```{r}
+dfm2 %>% 
+  quanteda::topfeatures(n = 10, decreasing = F)
+```
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Exploremos el dataset
+
+Nos interesa observar las menciones relativas a la ETA
+
+```{r}
+comentarios_eta <-  tokens_data %>% 
+  kwic( pattern = "eta",  window = 5) # <<
+DT::datatable(comentarios_eta, options = list(pageLength = 3))
+
+
+```
+
+### Retomaremos estos datos al final de la sesión
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Recuperando información
+
+Queremos encontrar textos similares a este
+
+
+```{r texto inicial, echo=FALSE}
+violencia_genero <-  corpus[[3]]
+mostrar_texto <- data.frame(texto = violencia_genero)
+mostrar_texto %>% 
+  kbl()
+
+```
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# TF-IDF
+
+Utilizaremos una metodología llamada TF-IDF para enriquecer la descripción de los textos
+
+--
+
+*Term frequency* - *Inverse document frequency*
+
+Un *token* es importante cuando:
+
+- Aparece muchas veces en un texto
+- Se repite poco a través de los documentos 
+
+--
+
+```{r tfidf}
+tfidf <- dfm2 %>%
+  dfm_tfidf()
+```
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Recuperando información
+
+Utilizamos similitud coseno para comparar todos los ~vectores~ textos entre sí
+
+La similitud coseno se mueve entre 0 y 1
+
+[Aquí](https://en.wikipedia.org/wiki/Cosine_similarity) encontrarán una definición formal  
+
+--
+
+```{r, eval=TRUE}
+distancia <- textstat_simil(tfidf, method = "cosine")
+dim(distancia)
+```
+
+```{r}
+distancia[1:5, 1:5]
+```
+
+---
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Recuperando información
+
+```{r}
+sort(distancia[3, ], decreasing = T)[2:4]
+most_similar <- corpus[627]
+similar_df <- data.frame(texto = most_similar)
+
+```
+
+--
+
+```{r, echo=FALSE}
+similar_df %>% 
+  kbl()
+
+```
+
+---
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# ¿Qué otras cosas puedo hacer?
+
+Clasificador de textos
+
+Algoritmos no supervisados (k-means)
+
+--
+
+**Desventajas**
+
+- No escala bien en corpus realmente grandes
+- No captura bien la semántica de las palabras
+
+--
+
+### Un ejemplo
+
+*lindo perro*
+
+*bonito can*
+
+En un enfoque TF-IDF ambos vectores tendrían similitud coseno = 0
+
+--
+
+### Necesitamos algo que capture el significado de las palabras
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Word embeddings
+
+¿Qué tal si tuviéramos un vector para representar cada palabra?
+
+--
+
+¿Qué tal si esos vectores capturaran el significado de la palabra?
+
+.center[
+<img src="https://media.giphy.com/media/UP9ItQNj52DsM3e29m/giphy.gif" width="200" />
+]
+
+--
+
+.center[
+### Existe algo llamado *Word embeddings*
+]
+
+
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# ¿Qué es *word embeddings*?
+
+Cualquier mecanismo que permita convertir palabras en vectores
+
+--
+
+La palabra **nación** está más cerca semánticamente a **país** que la palabra **hipopótamo** 
+
+--
+
+Para un humano esto es trivial, pero para un computador es muy difícil
+
+--
+
+**Idea clave**: El significado de una palabra está dada por su contexto 
+
+--
+
+La palabra **animal** está asociada a la palabra **hipopótamo**
+
+--
+
+No es tan común que la palabra **nación** esté cerca de **animal**
+
+--
+
+Podemos entrenar a una red neuronal para que aprenda vectores de palabras  
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Artículo clave (Mikolov et al, 2013)
+
+Efficient Estimation of Word Representations in Vector Space
+
+.center[
+<img src="imagenes/mikolov.png" width="700" />
+]
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Ejemplo word embeddings
+
+.panelset[
+
+.panel[.panel-name[spacy]
+
+### Vamos a cargar vectores de una librería de python llamada spacy 
+
+### Es probable que esta sección no puedan replicarla completamente, pero en las siguientes láminas lo solucionaremos :)  
+
+### Utilizaremos reticulate
+
+<img src="imagenes/reticulate.png" width="700" />
+
+
+
+]
+
+.panel[.panel-name[código]
+
+```{r, eval=FALSE}
+library(reticulate)
+
+virtualenv_create("taller-nlp")
+use_virtualenv("taller-nlp")
+virtualenv_install("taller-nlp", "spacy") # instalar spacy
+virtualenv_install("taller-nlp", "es_core_news_sm") # descargar modelo
+
+spacy <-  reticulate::import("spacy") # cargar spacy en R
+nlp =  spacy$load("es_core_news_sm") # cargar modelo pequeño
+
+# Crear vectores para cada una de las palabras
+indices <- 0:(length(doc) - 1)
+vectores <- map(indices,  ~doc[.x]$vector ) %>% 
+  map(poner_nombres) %>% 
+  bind_rows()
+
+```
+
+
+```{r, echo=FALSE}
+library(reticulate)
+use_virtualenv("taller-nlp")
+spacy <-  reticulate::import("spacy")
+nlp =  spacy$load("es_core_news_lg")
+doc = nlp("limón pera manzana sandía melón rojo azul amarillo verde perro gato ratón tigre elefante")
+
+# Crear vectores para cada una de las palabras
+indices <- 0:(length(doc) - 1)
+vectores <- map(indices,  ~doc[.x]$vector ) %>% 
+  map(poner_nombres) %>% 
+  bind_rows()
+
+```
+
+
+]
+
+
+
+.panel[.panel-name[plot1]
+```{r pca, echo=FALSE, fig.height=5, fig.align="center"}
+
+library(stats)
+resultado <- prcomp(vectores, scale = TRUE)
+
+df <-  data.frame(dim1 = resultado$x[, 1], dim2 = resultado$x[, 2]) %>% 
+  mutate(objeto = c("fruta", "fruta", "fruta", "fruta", "fruta", "color", "color", "color", "color", "animal",
+                    "animal", "animal", "animal", "animal" ),
+         word = c("limón", "pera", "manzana", "sandía", "melón", "rojo", "azul", "amarillo", "verde", "perro",
+                  "gato", "ratón", "tigre", "elefante")
+         )
+df %>% 
+  ggplot(aes(dim1, dim2, color = objeto, label = word)) +
+  geom_point() +
+  scale_color_manual(values = c("fruta" = "green", "color" = "blue", "animal" = "red")) +
+  geom_text() +
+  theme_bw()
+
+
+
+df_3d <-  data.frame(dim1 = resultado$x[, 1], dim2 = resultado$x[, 2], dim3 = resultado$x[, 3]) %>% 
+  mutate(objeto = c("fruta", "fruta", "fruta", "fruta", "fruta", "color", "color", "color", "color", "animal",
+                    "animal", "animal", "animal", "animal" ),
+         word = c("limón", "pera", "manzana", "sandía", "melón", "rojo", "azul", "amarillo", "verde", "perro",
+                  "gato", "ratón", "tigre", "elefante")
+         )
+
+
+```
+  ]
+
+.panel[.panel-name[plot2]
+
+```{r plot 3d, echo=FALSE, fig.align="center"}
+
+pal <- c("red", "blue", "green")
+
+library(plotly)
+fig <- plot_ly(df_3d, x = ~dim1, y = ~dim2, z = ~dim3, color = ~objeto, text = ~word, colors = pal)
+fig <- fig %>% add_markers()
+fig <- fig %>% layout(scene = list(xaxis = list(title = 'dim1'),
+                     yaxis = list(title = 'dim2'),
+                     zaxis = list(title = 'dim3'))) 
+
+fig
+```
+  ]
+]
+
+
+
+
+
+
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Ejemplo word embeddings
+
+## En lo que queda del taller haremos 2 cosas:
+
+--
+
+### Utilizar los vectores de *spacy* para procesar las noticias
+
+### Crearemos nuestros propios vectores
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Usando los vectores de spacy
+
+Plan: 
+
+1. Separar todas las noticias en oraciones
+2. Convertir las oraciones en vectores, usando los vectores
+3. Buscar algunos tópicos
+
+--
+
+```{r separar textos, eval=T}
+oraciones_editadas <- map(corpus, ~split_and_edit(.x ) )  %>% 
+  flatten() 
+
+
+```
+
+```{r mostrar oraciones, echo=FALSE}
+data.frame(oraciones = oraciones_editadas[1:2] %>% unlist()) %>% 
+  kbl() %>% 
+  kable_styling()
+
+```
+
+---
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Usando los vectores de spacy
+
+```{r editar datos, echo=FALSE}
+texto_vacio <- oraciones_editadas == ""
+oraciones_editadas <- oraciones_editadas[!texto_vacio]
+
+
+```
+
+--
+
+Haremos una muestra de 50.000 oraciones
+
+```{r}
+set.seed(123)
+vector_muestra <-  sample(x = 1:length(oraciones_editadas), 50000, replace = FALSE)
+oraciones_muestra <- oraciones_editadas[vector_muestra]
+```
+
+
+--
+
+La función `create_representation` convierte cada texto en un vector 
+
+```{r muestreo textos, eval=FALSE}
+representations <- map(oraciones_muestra, create_representation) 
+saveRDS(representations, "data/vector_representation_sample.rds")
+```
+
+
+---
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Usando los vectores de spacy
+
+### Un poco de procesamiento de datos
+
+```{r cargar representaciones}
+representations <- readRDS("data/vector_representation_sample.rds")
+
+# Eliminar textos sin representación y con menos de 4 palabras
+representations2 <- representations %>%
+  keep(~!is_empty(.x[[1]])) %>% 
+  keep(~.x[3] > 4)
+
+# Guardamos los vectores
+vectores <- representations2 %>% 
+  map(1) %>% 
+  map(~unlist(unname(.x)))  
+
+# Guardamos las oraciones editadas
+textos <- representations2 %>% 
+  map(2) 
+
+```
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Buscando oraciones
+
+```{r ejemplo buscar concepto , eval=FALSE}
+encontrar_mas_parecidos(vectores, "elecciones congreso nacional", 5)
+encontrar_mas_parecidos(vectores, "crecimiento económico", 5)
+encontrar_mas_parecidos(vectores, "inmigrantes musulmanes", 5)
+encontrar_mas_parecidos(vectores, "desigualdad económica", 5)
+
+encontrar_mas_parecidos(vectores, "ministerio sanidad")
+encontrar_mas_parecidos(vectores, "inflación", 5)
+encontrar_mas_parecidos(vectores, "terrorismo", 5)
+encontrar_mas_parecidos(vectores, "violencia género", 5)
+
+
+```
+
+
+.panelset[
+
+.panel[.panel-name[elecciones]
+```{r congreso, echo=FALSE}
+x <- encontrar_mas_parecidos(vectores, "elecciones congreso nacional", 5)
+crear_tabla(x)
+```
+
+]
+
+.panel[.panel-name[crecimiento]
+
+```{r crecimiento, echo=FALSE}
+x <- encontrar_mas_parecidos(vectores, "crecimiento económico", 5)
+crear_tabla(x)
+```
+
+
+]
+
+.panel[.panel-name[inmigrantes]
+```{r inmigrantes, echo=FALSE}
+x <- encontrar_mas_parecidos(vectores, "inmigrantes musulmanes", 5)
+crear_tabla(x)
+```
+
+]
+
+.panel[.panel-name[desigualdad]
+```{r desigualdad, echo=FALSE}
+x <- encontrar_mas_parecidos(vectores, "desigualdad económica", 5)
+crear_tabla(x)
+```
+
+]
+
+.panel[.panel-name[sanidad]
+```{r ministerio, echo=FALSE}
+x <- encontrar_mas_parecidos(vectores, "ministerio sanidad")
+crear_tabla(x)
+```
+
+]
+
+.panel[.panel-name[inflación]
+```{r inflacion, echo=FALSE}
+x <- encontrar_mas_parecidos(vectores, "inflación", 5)
+crear_tabla(x)
+```
+
+]
+
+.panel[.panel-name[terrorismo]
+```{r terrorismo, echo=FALSE}
+x <- encontrar_mas_parecidos(vectores, "terrorismo", 5)
+crear_tabla(x)
+```
+
+]
+
+.panel[.panel-name[género]
+```{r violencia genero, echo=FALSE}
+x <- encontrar_mas_parecidos(vectores, "violencia género", 5)
+crear_tabla(x)
+```
+
+]
+
+]
+
+
+
+
+
+---
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Creando nuestros propios vectores
+
+--
+
+### Usamos nuestras noticias para crear embeddings
+
+
+
+```{r, eval=FALSE}
+library(word2vec)
+
+x <- data$cuerpo # noticias
+
+# Generar embeddings de 300 dimensiones
+model <- word2vec(x = x, dim = 300, iter = 20, min_count = 5, threads = 16)
+
+# Crear una matriz
+embedding <- as.matrix(model)
+
+# Buscar palabras más cercanas 
+lookslike <- predict(model, c("democracia", "violencia", "presidente", "dictadura", "rojo", "rey"), 
+                     type = "nearest", top_n = 5)
+
+```
+
+```{r cargar modelo, echo=FALSE}
+model <- word2vec::read.word2vec("data/news_vectors_300.bin")
+
+cercanos <- predict(model, c("inmigración", "democracia", "violencia", "presidente", "dictadura", "rey" ), 
+                     type = "nearest", top_n = 5)
+
+# Crear una matriz
+embedding <- as.matrix(model)
+
+cercanos %>% 
+  bind_rows() %>% 
+  kbl() %>%
+  kable_styling(font_size = 12)
+
+```
+
+
+---
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Para terminar
+
+### Retomemos nuestros textos sobre la ETA 
+
+### Trataremos de ver si los extractos tienen un "sentimiento" positivo o negativo 
+
+### Usaremos un modelo disponible en [huggingface](https://huggingface.co/pysentimiento/robertuito-sentiment-analysis)
+
+### Empresa que pone a disposición *transformers*
+
+.center[
+<img src="imagenes/huggingface.png" width="400" />
+]
+
+---
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Huggingface
+
+### Debemos instalar algunas librerías de *python*
+
+```{r, eval=FALSE}
+reticulate::py_install("transformers", pip = TRUE)
+reticulate::py_install(c("torch", "sentencepiece"), pip = TRUE)
+```
+
+
+--
+
+### Cargamos la libraría y un modelo entrenado con datos en español
+
+```{r}
+transformers <- reticulate::import("transformers")
+classifier <- transformers$pipeline(task = "text-classification",
+                                    model = "pysentimiento/robertuito-sentiment-analysis" )
+
+```
+
+
+
+```{r}
+
+text <- c("Es lo mejor que me ha pasado el último tiempo")
+classifier(text)
+
+text <- c("Es el peor producto que he comprado en mi vida")
+classifier(text)
+
+```
+
+
+---
+
+
+background-image: url("imagenes/fondo2.PNG")
+background-size: contain;
+background-position: 100% 0%
+
+# Datos ETA
+
+
+```{r}
+
+data <- data.frame(pre  = comentarios_eta$pre, post = comentarios_eta$post ) %>% 
+  sample_n(10) %>% 
+  mutate(text = paste(pre, post)) %>% 
+  select(text) %>% 
+  mutate(prop = classifier(text))
+ 
+
+get_label <- function(text) {
+  out <-  classifier(text)
+  out[[1]]$label
+}
+
+get_prob <- function(text) {
+  out <-  classifier(text)
+  out[[1]]$score
+  
+}
+
+clasificar("pésimas noticias de chillán")
+
+x[[1]]$label
+x[[1]]$score
+```
+
+
+---
+
+class: center, middle
+
+.linea-superior[]
+.linea-inferior[]
+
+<img src="imagenes/logo_portada2.png" width="200" />
+
+
+## INE Educa: Clases abiertas de R
+
+## Proyecto Ciencia de Datos
+
+### Septiembre 2023
+
