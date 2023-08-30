@@ -31,12 +31,6 @@ knitr::opts_chunk$set(
 library(xaringanthemer)
 xaringanExtra::use_clipboard()
 xaringanExtra::use_panelset()
-#style_duo_accent(
-#  primary_color = "#1381B0",
-#  secondary_color = "#FF961C",
-#  inverse_header_color = "#FFFFFF"
-#)
-
 
 library(quanteda)
 require(quanteda.textstats)
@@ -44,21 +38,26 @@ require(quanteda.textplots)
 require(quanteda.corpora)
 require(quanteda.textmodels)
 library(kableExtra)
+
+source("code/helpers.R")
 ```
 
 
 # Contenidos
 
-Introducción
-Flujo de un proyecto de *machine learning*
+- Introducción
 
+- Flujo de un proyecto de *machine learning*
 
+--
 
-Objetivo de la clase: 
+**Objetivo de la clase:**
 
 Revisar un flujo estándar de *machine learning*
 
+--
 
+**Plan**: Primer bloque será expositivo. En el segundo bloque pondremos en práctica los conceptos
 
 ---
 
@@ -229,7 +228,24 @@ Probar el resultado en el set de validación
 ]
 
  
- 
+
+---
+
+## Antes de seguir...
+
+```{r, eval=F}
+install.packages("tidyverse")
+install.packages("caret")
+install.packages("pROC") # no es tan importante
+
+```
+
+Tengan los datos a mano
+- Titanic
+- Encuesta de Presupeustos Familiares (EPF)
+
+Ejecuten el código con las funciones que les compartí en el archivo helpers.R
+
 
 
 ---
@@ -340,7 +356,7 @@ titanic %>%
 
 Número de padres-hijos a bordo
 
-```{r, fig.width=5, fig.height=4, fig.align='center'}
+```{r, fig.width=5, fig.height=3.8, fig.align='center'}
 
 titanic %>% 
   count(`Parents/Children Aboard`, Survived) %>% 
@@ -362,7 +378,7 @@ titanic %>%
 
 Número de hermanos-pareja a bordo
 
-```{r, fig.width=5, fig.height=4, fig.align='center'}
+```{r, fig.width=5, fig.height=3.8, fig.align='center'}
 
 titanic %>% 
   count(`Siblings/Spouses Aboard`, Survived) %>% 
@@ -471,20 +487,23 @@ titanic2 %>%
 ## Proceso de entrenamiento
 
 ```{r, echo=TRUE}
-
+# Ajuste de una regresión logística
 model <- glm(formula = survived ~ sex_male + pclass_2 + pclass_3 + age + fare +
              siblings_spouses_aboard + parents_children_aboard,
              family = "binomial",
     data = train_set)
 
+# Predicción en el set de entrenamiento
 predict_reg1 <- predict(model, train_set, type = "response")
 
+# Predicción en el set de testeo
 predict_reg2 <- predict(model, test_set, type = "response")
 
-
+# Definición de un umbral. Usamos 0.5
 predictions_train <- if_else(predict_reg1 > 0.5, 1, 0)
 predictions_test <- if_else(predict_reg2 > 0.5, 1, 0)
 
+# Calculamos el porcentaje de acierto en cada uno de los conjuntos
 acc_train <- mean(train_set$survived == predictions_train)
 acc_test <- mean(test_set$survived == predictions_test)
 
@@ -498,7 +517,6 @@ print(paste("acc test: ", acc_test) )
 
 ---
 
-<br>
 ## ¿Qué hubiera ocurrido con otra partición?
 
 --
@@ -588,16 +606,13 @@ print(paste("mean acc:", round(mean(crossval$resample$Accuracy), 4)))
 
 ### ¿80% comparado con qué?
 
-.center[
-<img src="imagenes/moneda.png" width="400" />
-]
 
 
 ---
 
 ## Modelo base
 
-```{r, fig.width=5, fig.height=4, fig.align='center'}
+```{r, fig.width=5, fig.height=3.8, fig.align='center'}
 titanic %>% 
   count(Survived) %>%
   mutate(Survived = as.factor(Survived),
@@ -740,6 +755,28 @@ table(confusion_2$real, confusion_2$pred)
 
 ## Experimento
 
+
+```{r calcular valores acc1, echo=FALSE, fig.align='center', fig.width=5, fig.height=3.2}
+
+calcular_acc <- function(umbral, predicciones, test_data) {
+  predictions_test <- if_else(predicciones > umbral, 1, 0)
+  return(mean(test_data == predictions_test)) 
+}
+
+acc_values <- map_dbl(seq(0.1, 0.9, 0.05), ~calcular_acc(.x, predict_reg2, test_set$survived) )
+df <- data.frame(acc = acc_values, thresholds = seq(0.1, 0.9, 0.05)) 
+max_acc = df %>% filter(acc == max(acc)) %>% pull(thresholds)
+
+
+```
+
+
+
+.panelset[
+
+
+.panel[.panel-name[umbrales]
+
 ```{r, echo=T}
 acc_08 <- as.character(round(mean(confusion_2$real == confusion_2$pred), 2))
 acc_05 <-  as.character(round(mean(confusion$real == confusion$pred), 2))
@@ -749,11 +786,23 @@ El *accuracy* para el umbral de 0.5 es `r acc_05`
 El *accuracy* para el umbral de 0.8 es `r acc_08`
 
 
---
+```{r, echo=FALSE, fig.align='center', fig.width=5, fig.height=2.8}
+df %>% 
+  ggplot(aes(x = thresholds, y = acc, group = 1)) +
+  geom_line() +
+  geom_vline( xintercept = max_acc ) +
+  theme_bw() +
+  annotate("text",  x = max_acc + 0.05, y = 0.75, label = round(max(df$acc), 2) )
+
+```
 
 
+]
 
-```{r calcular valores acc, echo=FALSE, fig.align='center', fig.width=5, fig.height=3.2}
+.panel[.panel-name[código-umbrales]
+
+
+```{r calcular valores acc2, echo=TRUE, eval=FALSE, fig.align='center', fig.width=5, fig.height=3.2}
 
 calcular_acc <- function(umbral, predicciones, test_data) {
   predictions_test <- if_else(predicciones > umbral, 1, 0)
@@ -773,18 +822,24 @@ df %>%
 
 ```
 
+
+]
+]
+
+
+
 ---
 
 ## ¿Cómo se ve nuestra matriz de confusión?
 
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 predictions_test_055 <- if_else(predictions_test > max_acc, 1, 0)
 confusion_055 <- data.frame(real = test_set$survived, pred = predictions_test_055)
 table(confusion_055$real, confusion_055$pred)
 ```
 
 
-Estamos prediciendo valor 1 solo cuando estamos muy seguros
+Estamos prediciendo valor 1 cuando estamos bastante seguros
 
 ### ¿Es suficiente el *accuracy*?
 
@@ -807,57 +862,15 @@ $False \; positive\;rate\;(FPR) = \frac{False\;positives\;(FP)}{False\;positives
 
 --
 
-Podemos calcular TPR y FPR para muchos umbrales de predicción
+### Podemos calcular TPR y FPR para muchos umbrales de predicción
 
-```{r}
+---
 
-```
+## Curva ROC
 
+.panelset[
+.panel[.panel-name[curva-roc]
 
-
-```{r}
-
-
-get_confusion_matrix <- function(umbral, predicciones, test_data) {
-  
-  predictions_test <- if_else(predicciones >= umbral, 1, 0) 
-  df <- data.frame(real = test_set$survived, pred = predictions_test)
-  confusion <- table(df$real, df$pred)
-  
-  
-  # Si solo hay predicciones positivas
-  if (sum(df$pred == 1 ) == nrow(df) ) {
-        `0` = c(0, 0)
-        return (cbind(`0`, confusion)) 
-    # Si solo hay predicciones negativas
-  } else if (sum(df$pred == 0 ) == nrow(df)) {
-      `1` = c(0, 0)
-      return(cbind(confusion,   `1`))
-  } else {
-    return(confusion)
-  }
-  
-  
-}
-
-
-get_tpr <- function(confusion) {
-  tp = confusion[2, 2]  
-  fn = confusion[2, 1]
-  tp / (tp + fn)
-}
-
-get_fpr <- function(confusion) {
-  fp = confusion[1, 2]
-  tn = confusion[1 ,1]
-  fp / (fp + tn)
-
-  
-}
-
-
-
-```
 
 ```{r, fig.align='center', fig.width=5, fig.height=3.2, echo=T}
 set.seed(1234)
@@ -882,9 +895,57 @@ roc_df %>%
 
 ```
 
+]
+
+.panel[.panel-name[codigo-anexo]
+```{r, eval=FALSE, echo=TRUE}
+
+get_confusion_matrix <- function(umbral, predicciones, test_data) {
+  
+  predictions_test <- if_else(predicciones >= umbral, 1, 0) 
+  df <- data.frame(real = test_set$survived, pred = predictions_test)
+  confusion <- table(df$real, df$pred)
+  
+  
+  # Si solo hay predicciones positivas
+  if (sum(df$pred == 1 ) == nrow(df) ) {
+        `0` = c(0, 0)
+        return (cbind(`0`, confusion)) 
+    # Si solo hay predicciones negativas
+  } else if (sum(df$pred == 0 ) == nrow(df)) {
+      `1` = c(0, 0)
+      return(cbind(confusion,   `1`))
+  } else {
+    return(confusion)
+  }
+  
+}
 
 
-```{r, echo=FALSE, eval=FALSE}
+get_tpr <- function(confusion) {
+  tp = confusion[2, 2]  
+  fn = confusion[2, 1]
+  tp / (tp + fn)
+}
+
+get_fpr <- function(confusion) {
+  fp = confusion[1, 2]
+  tn = confusion[1 ,1]
+  fp / (fp + tn)
+
+}
+
+```
+]
+]
+
+---
+
+## Curva roc en fácil
+
+Con el paquete pROC es mucho más sencillo
+
+```{r, echo=TRUE, eval=TRUE, fig.width=5, fig.height=3.2, fig.align='center'}
 library(pROC)
 sim_roc <- roc(response = test_set$survived,
                predictor = predict_reg2)
@@ -1036,10 +1097,10 @@ Usaremos datos de la VIII Encuesta de Presupuestos Familiares. Entrenaremos un m
 
 Realizaremos todo el flujo de un proyecto de *machine learning*
 
-- Exploración (relación entre la variable objetivo y las covariables)
-- Separación train/test
-- Entrenamiento (incluir *cross validation*)
-- Evaluación en el set de testeo
+- Exploración (relación entre la variable objetivo y las covariables) (20 minutos)
+- Separación train/test (10 minutos)
+- Entrenamiento (incluir *cross validation*) (20 minutos)
+- Evaluación en el set de testeo (10 minutos)
 
 ---
 
